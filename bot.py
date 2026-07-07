@@ -59,14 +59,10 @@ async def main():
         default=DefaultBotProperties(parse_mode=ParseMode.HTML),
     )
     if config.tg_proxy_url:
+        # aiogram сам строит нужный коннектор: и для socks5://, и для http://
+        # через параметр proxy= (socks требует aiohttp_socks — он в requirements).
         from aiogram.client.session.aiohttp import AiohttpSession
-        if config.tg_proxy_url.startswith("socks"):
-            from aiohttp_socks import ProxyConnector
-            connector = ProxyConnector.from_url(config.tg_proxy_url)
-            session = AiohttpSession(connector=connector)
-        else:
-            session = AiohttpSession(proxy=config.tg_proxy_url)
-        bot_kwargs["session"] = session
+        bot_kwargs["session"] = AiohttpSession(proxy=config.tg_proxy_url)
         logger.info("Telegram прокси: %s", config.tg_proxy_url.split("@")[-1])
 
     bot = Bot(**bot_kwargs)
