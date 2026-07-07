@@ -1008,7 +1008,6 @@ async def cb_user_qr(cq: CallbackQuery, config: Config):
         return
     await cq.answer("Генерирую QR...")
     link = all_links[index]
-    link_short_label(link, index)
     try:
         png = make_qr_bytes(link)
         photo = BufferedInputFile(png, filename=f"qr_{username}_{index}.png")
@@ -2093,7 +2092,6 @@ async def cb_config_edit_apply(cq: CallbackQuery, config: Config):
 @router.callback_query(F.data.startswith("configedit:confirm:"))
 async def cb_config_edit_confirm(cq: CallbackQuery, state: FSMContext):
     """После применения — вернуться к секции."""
-    cq.data.split(":")[2]
     await cb_config_edit_section(cq, state)
 
 

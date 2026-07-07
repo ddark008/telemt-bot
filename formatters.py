@@ -745,7 +745,6 @@ def format_tls_fingerprints(d: dict) -> str:
     data         = d.get("data") or {}
     by_fp        = data.get("by_fingerprint", [])
     by_ip        = data.get("by_ip", [])
-    data.get("by_cidr", [])
     by_user      = data.get("by_user", [])
     dropped      = data.get("dropped_total", 0)
     parse_err    = data.get("parse_error_total", 0)

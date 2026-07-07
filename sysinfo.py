@@ -66,12 +66,8 @@ def _collect_sync() -> dict:
     boot_ts = psutil.boot_time()
     uptime_secs = time.time() - boot_ts
 
-    # Hostname + IP
+    # Hostname
     hostname = socket.gethostname()
-    try:
-        socket.gethostbyname(hostname)
-    except Exception:
-        pass
 
     # Все IP интерфейсов (кроме loopback)
     ips = []
