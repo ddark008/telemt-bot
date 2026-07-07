@@ -8,7 +8,6 @@ import asyncio
 import os
 import socket
 import time
-from datetime import datetime, timezone
 
 import psutil
 import tz as _tz
@@ -31,10 +30,14 @@ def _fmt_uptime(seconds: float) -> str:
     h, s = divmod(s, 3600)
     m, s = divmod(s, 60)
     parts = []
-    if d: parts.append(f"{d} дн")
-    if h: parts.append(f"{h} ч")
-    if m: parts.append(f"{m} мин")
-    if not d: parts.append(f"{s} сек")
+    if d:
+        parts.append(f"{d} дн")
+    if h:
+        parts.append(f"{h} ч")
+    if m:
+        parts.append(f"{m} мин")
+    if not d:
+        parts.append(f"{s} сек")
     return " ".join(parts)
 
 
@@ -66,9 +69,9 @@ def _collect_sync() -> dict:
     # Hostname + IP
     hostname = socket.gethostname()
     try:
-        ipv4 = socket.gethostbyname(hostname)
+        socket.gethostbyname(hostname)
     except Exception:
-        ipv4 = "—"
+        pass
 
     # Все IP интерфейсов (кроме loopback)
     ips = []

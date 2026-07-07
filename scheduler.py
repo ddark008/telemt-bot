@@ -6,7 +6,6 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime, timezone
 from functools import wraps
 
 import aiosqlite
@@ -14,7 +13,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 
 from api_client import TelemetClient, ApiError
-from config import Config, AlertThresholds
+from config import Config
 import database as db
 
 logger = logging.getLogger(__name__)
