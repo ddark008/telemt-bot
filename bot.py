@@ -9,6 +9,7 @@ import logging
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
+from aiogram.exceptions import TelegramNetworkError
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.types import (
     BotCommand,
@@ -48,6 +49,32 @@ async def setup_bot_menu(bot: Bot, config=None):
     logger.info("Меню бота установлено (%d команд)%s", len(commands), " [lite]" if lite else "")
 
 
+async def _setup_menu_resilient(bot: Bot, config=None, *, tries: int = 5, base_delay: float = 2.0):
+    """Ставит меню с ретраями. При флапающем прокси/сети не роняет старт —
+    меню косметическое, дальше start_polling сам ретраит getUpdates."""
+    for attempt in range(1, tries + 1):
+        try:
+            await setup_bot_menu(bot, config)
+            return
+        except (TelegramNetworkError, OSError, asyncio.TimeoutError) as e:
+            if attempt == tries:
+                logger.warning(
+                    "Меню не установлено за %d попыток (%s) — продолжаю без меню",
+                    tries,
+                    type(e).__name__,
+                )
+                return
+            delay = base_delay * attempt
+            logger.warning(
+                "Меню: сетевая ошибка (%s), повтор через %.0fс [%d/%d]",
+                type(e).__name__,
+                delay,
+                attempt,
+                tries,
+            )
+            await asyncio.sleep(delay)
+
+
 async def main():
     config = load_config()
 
@@ -74,7 +101,7 @@ async def main():
 
     dp.include_router(router)
 
-    await setup_bot_menu(bot, config)
+    await _setup_menu_resilient(bot, config)
     if not config.lite_mode:
         sched.setup(bot, config)
     else:
