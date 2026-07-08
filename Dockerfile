@@ -15,7 +15,7 @@ WORKDIR /app
 # Отдельный слой под зависимости → кешируется, пока requirements.txt не менялся.
 COPY requirements.txt ./
 RUN python -m venv "$VIRTUAL_ENV" \
-    && pip install --upgrade pip \
+    && pip install --upgrade pip setuptools \
     && pip install -r requirements.txt \
     # Триммим вес: байткод, тесты пакетов, C/Cython-исходники в wheels.
     && find "$VIRTUAL_ENV" -type d -name '__pycache__' -prune -exec rm -rf {} + \
@@ -42,6 +42,10 @@ WORKDIR /app
 
 # venv с зависимостями из builder.
 COPY --from=builder /opt/venv /opt/venv
+
+# Обновляем системный setuptools (приходит из base image) до версии с пофикшенными
+# вендорными wheel и jaraco.context — иначе Trivy находит HIGH CVE в /usr/local.
+RUN /usr/local/bin/pip install --upgrade setuptools
 
 # Только исходники (см. .dockerignore — доки/тесты/секреты не попадают).
 COPY --chown=appuser:appuser *.py ./
