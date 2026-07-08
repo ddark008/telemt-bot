@@ -74,6 +74,44 @@ docker run --rm -v telemt-data:/data -v $(pwd):/backup alpine \
   tar czf /backup/telemt-data.tar.gz -C /data .
 ```
 
+### Бэкап telemt.toml
+
+Кнопка **📤 Бэкап** в меню отправляет файл `telemt.toml` прямо в чат. В Docker контейнер не видит хостовый `/etc/telemt/telemt.toml` — нужно явно смонтировать файл.
+
+**Шаг 1 — выставить права на хосте:**
+
+```bash
+chown 10001 /etc/telemt/telemt.toml
+chmod 640 /etc/telemt/telemt.toml
+```
+
+Контейнер запускается как `appuser` (UID 10001) — файл должен быть ему доступен для чтения.
+
+**Шаг 2 — раскомментировать mount в `docker-compose.yml`:**
+
+```yaml
+volumes:
+  - telemt-data:/data
+  - /etc/telemt/telemt.toml:/etc/telemt/telemt.toml:ro  # ← раскомментировать
+```
+
+Если `telemt.toml` лежит в другом месте — укажи путь через переменную окружения в `.env`:
+
+```env
+TELEMT_CONFIG_PATH=/path/to/telemt.toml
+```
+
+И соответственно поменяй левую часть mount:
+
+```yaml
+- /path/to/telemt.toml:/etc/telemt/telemt.toml:ro
+```
+
+> **Альтернатива без изменения владельца:** используй POSIX ACL (требует пакет `acl`):
+> ```bash
+> setfacl -m u:10001:r /etc/telemt/telemt.toml
+> ```
+
 ### Локальная сборка
 
 ```bash
