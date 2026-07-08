@@ -27,6 +27,70 @@ Telegram-бот для управления [Telemt MTProxy](https://github.com/
 
 ---
 
+## Быстрый старт через Docker
+
+Готовый образ публикуется на GitHub Container Registry после каждого мержа в `main` и при создании тега `v*.*.*`.
+
+```bash
+# Скачать образ вручную (опционально)
+docker pull ghcr.io/ddark008/telemt-bot:latest
+```
+
+### 1. Создать `.env`
+
+```bash
+cp .env.example .env
+nano .env          # заполни BOT_TOKEN, ALLOWED_USERS, SERVER_URL
+```
+
+### 2. Запустить через Docker Compose
+
+```bash
+curl -O https://raw.githubusercontent.com/ddark008/telemt-bot/main/docker-compose.yml
+docker compose up -d
+```
+
+По умолчанию `docker-compose.yml` тянет образ с GHCR. Если хочешь собрать локально — закомментируй строку `image:` и раскомментируй `build: .`.
+
+### Доступные теги
+
+| Тег | Описание |
+|-----|----------|
+| `latest` | Последний коммит в `main` |
+| `v1.2.3` | Конкретная версия |
+| `1.2` | Последний патч в мажоре |
+| `sha-abc1234` | Конкретный коммит |
+
+### Данные и том
+
+База данных хранится в named volume `telemt-data` (путь внутри контейнера — `/data`). **Не используй bind-mount** (`./data:/data`) — это перетирает права `appuser` и вызывает `unable to open database file`.
+
+```bash
+# Посмотреть данные
+docker volume inspect telemt-data
+
+# Бэкап тома
+docker run --rm -v telemt-data:/data -v $(pwd):/backup alpine \
+  tar czf /backup/telemt-data.tar.gz -C /data .
+```
+
+### Локальная сборка
+
+```bash
+docker build -t telemt-bot .
+docker run -d --env-file .env -v telemt-data:/data --name telemt-bot telemt-bot
+```
+
+### Параметры безопасности (включены в compose)
+
+- `read_only: true` — файловая система контейнера только для чтения
+- `cap_drop: ALL` — сброс всех Linux capabilities
+- `no-new-privileges: true` — запрет эскалации привилегий
+- `mem_limit: 256m`, `pids_limit: 256` — лимиты ресурсов
+- Non-root пользователь `appuser` (UID 10001)
+
+---
+
 ## Установка на свежей системе
 
 ### 1. Установить Python и зависимости
